@@ -1,0 +1,29 @@
+@startuml c4-container-to-be
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Hotelio. C4 Container. Booking вынесен по паттерну Strangler Fig
+
+Person(user, "Пользователь и партнёрский канал", "Вызывают прежний REST API")
+
+System_Boundary(hotelio, "Hotelio") {
+
+  Container(monolith, "Monolith Application", "Spring Boot", "Принимает весь REST API. Содержит модули User, Hotel, Promo, Review. Вызовы Booking передаёт в booking-service")
+  ContainerDb(monolithDb, "Monolith DB", "PostgreSQL", "Все таблицы, кроме booking")
+
+  Container(bookingService, "booking-service", "Spring Boot", "Создаёт и возвращает бронирования. Новая функциональность бронирований пишется здесь")
+  ContainerDb(bookingDb, "Booking DB", "PostgreSQL", "Таблица booking")
+
+  Container(kafka, "Kafka", "Message Broker", "Событие booking.created")
+}
+
+Rel(user, monolith, "Вызывает API", "REST")
+Rel(monolith, bookingService, "Передаёт вызовы Booking", "gRPC")
+Rel(bookingService, monolith, "Проверяет пользователя, отель, промокод и отзывы на переходный период", "REST")
+Rel(monolith, monolithDb, "Читает и записывает", "JDBC")
+Rel(bookingService, bookingDb, "Читает и записывает", "JDBC")
+Rel(bookingService, kafka, "Публикует booking.created")
+
+
+@enduml

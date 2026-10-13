@@ -1,0 +1,18 @@
+@startuml c4-context-as-is
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Hotelio. C4 Context. Текущее состояние
+
+Person(user, "Пользователь", "Ищет отели и бронирует жильё через фронтенд")
+Person(partner, "Партнёрский канал", "Вызывает публичный REST API Hotelio")
+
+System(hotelio, "Hotelio Monolith", "Java Spring Boot. Единое приложение")
+SystemDb(db, "Hotelio DB", "PostgreSQL. Единая база")
+
+Rel(user, hotelio, "Ищет отели, бронирует, читает отзывы", "HTTPS, REST")
+Rel(partner, hotelio, "Бронирует и выбирает данные", "HTTPS, REST")
+Rel(hotelio, db, "Читает и записывает все данные", "JDBC")
+
+@enduml
