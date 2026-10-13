@@ -1,0 +1,30 @@
+{
+    "data": {
+        "bookingsByUser": [
+            {
+                "id": "28",
+                "discountPercent": 10,
+                "hotel": {
+                    "name": "Modern hotel in Seoul downtown with spa and skybar.",
+                    "city": "Seoul"
+                }
+            },
+            {
+                "id": "29",
+                "discountPercent": 0,
+                "hotel": {
+                    "name": "Modern hotel in Seoul downtown with spa and skybar.",
+                    "city": "Seoul"
+                }
+            },
+            {
+                "id": "30",
+                "discountPercent": 10,
+                "hotel": {
+                    "name": "Modern hotel in Seoul downtown with spa and skybar.",
+                    "city": "Seoul"
+                }
+            }
+        ]
+    }
+}

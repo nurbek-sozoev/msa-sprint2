@@ -1,0 +1,60 @@
+@startuml c4-container-as-is
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Hotelio. C4 Component. Текущее состояние
+
+Person(user, "Пользователь и партнёрский канал", "Вызывают REST API")
+
+System_Boundary(hotelio, "Hotelio Monolith") {
+
+  Container_Boundary(monolith, "Monolith Application, Spring Boot, порт 8084") {
+
+    ' Контроллеры
+    Component(bookingController, "BookingController", "Spring MVC", "/api/bookings")
+    Component(hotelController, "HotelController", "Spring MVC", "/api/hotels")
+    Component(promoController, "PromoCodeController", "Spring MVC", "/api/promos")
+    Component(reviewController, "ReviewController", "Spring MVC", "/api/reviews")
+    Component(userController, "AppUserController", "Spring MVC", "/api/users")
+
+    ' Сервисы
+    Component(bookingService, "BookingService", "Java Service", "Проверяет пользователя, отель, промокод и отзывы. Рассчитывает цену и скидку. Записывает бронирование")
+    Component(hotelService, "HotelService", "Java Service", "Возвращает данные отеля и признаки operational и fullyBooked. Ищет отели по городу и по рейтингу")
+    Component(userService, "AppUserService", "Java Service", "Возвращает статус пользователя и признаки active, blacklisted, vip, authorized")
+    Component(promoService, "PromoCodeService", "Java Service", "Проверяет промокод: срок действия и признак vipOnly")
+    Component(reviewService, "ReviewService", "Java Service", "Хранит отзывы. Считает средний рейтинг отеля и признак trusted: средний рейтинг от 4.0 и от 10 отзывов")
+  }
+
+  ComponentDb(postgres, "Monolith DB", "PostgreSQL", "Таблицы app_user, hotel, booking, promo_code, review. Схема пересоздаётся при каждом старте приложения: ddl-auto равен create")
+}
+
+' Контроллер вызывает свой сервис
+Rel(bookingController, bookingService, "Вызывает")
+Rel(hotelController, hotelService, "Вызывает")
+Rel(promoController, promoService, "Вызывает")
+Rel(reviewController, reviewService, "Вызывает")
+Rel(userController, userService, "Вызывает")
+
+' Вызовы между сервисами
+Rel(bookingService, userService, "isUserActive, isUserBlacklisted, getUserStatus")
+Rel(bookingService, hotelService, "isHotelOperational, isHotelFullyBooked")
+Rel(bookingService, promoService, "validate")
+Rel(bookingService, reviewService, "isTrustedHotel")
+Rel(promoService, userService, "getUserStatus для проверки статуса VIP")
+
+' Доступ к базе
+Rel(bookingService, postgres, "Читает и записывает", "JPA")
+Rel(userService, postgres, "Читает", "JPA")
+Rel(hotelService, postgres, "Читает", "JPA")
+Rel(promoService, postgres, "Читает", "JPA")
+Rel(reviewService, postgres, "Читает и записывает", "JPA")
+
+' Входящие запросы
+Rel(user, bookingController, "POST и GET /api/bookings", "REST")
+Rel(user, hotelController, "GET /api/hotels", "REST")
+Rel(user, promoController, "GET и POST /api/promos", "REST")
+Rel(user, reviewController, "GET /api/reviews", "REST")
+Rel(user, userController, "GET /api/users", "REST")
+
+@enduml

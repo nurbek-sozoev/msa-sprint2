@@ -2,6 +2,10 @@ FROM debian:bullseye-slim
 
 WORKDIR /app
 
+# Switch to archive mirrors (bullseye security packages moved)
+RUN sed -i 's|deb.debian.org/debian-security|archive.debian.org/debian-security|g' /etc/apt/sources.list && \
+    sed -i '/bullseye-updates/d' /etc/apt/sources.list
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     curl \

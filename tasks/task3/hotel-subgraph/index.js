@@ -3,6 +3,20 @@ import { startStandaloneServer } from '@apollo/server/standalone';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import gql from 'graphql-tag';
 
+const MONOLITH_URL = process.env.MONOLITH_URL || 'http://monolith:8080';
+
+async function fetchHotel(id) {
+  const res = await fetch(`${MONOLITH_URL}/api/hotels/${id}`);
+  if (res.status === 404) return null;
+  const hotel = await res.json();
+  return {
+    id: hotel.id,
+    name: hotel.description,
+    city: hotel.city,
+    stars: Math.round(hotel.rating),
+  };
+}
+
 const typeDefs = gql`
   type Hotel @key(fields: "id") {
     id: ID!
@@ -19,12 +33,12 @@ const typeDefs = gql`
 const resolvers = {
   Hotel: {
     __resolveReference: async ({ id }) => {
-      // TODO: Реальный вызов к hotel-сервису или заглушка
+      return fetchHotel(id);
     },
   },
   Query: {
     hotelsByIds: async (_, { ids }) => {
-      // TODO: Заглушка или REST-запрос
+      return Promise.all(ids.map((id) => fetchHotel(id)));
     },
   },
 };
@@ -36,5 +50,5 @@ const server = new ApolloServer({
 startStandaloneServer(server, {
   listen: { port: 4002 },
 }).then(() => {
-  console.log('✅ Hotel subgraph ready at http://localhost:4002/');
+  console.log('Hotel subgraph ready at http://localhost:4002/');
 });

@@ -1,0 +1,6 @@
+Enabling inline tracing for this subgraph. To disable, use ApolloServerPluginInlineTraceDisabled.
+Booking subgraph ready at http://localhost:4001/
+[request] query={bookingsByUser(userId:"test-user-2"){id discountPercent hotel{__typename id}}}
+[response] errors=false
+[request] query={bookingsByUser(userId:"test-user-2"){id discountPercent hotel{__typename id}}}
+[response] errors=true

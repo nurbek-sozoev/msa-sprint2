@@ -1,0 +1,25 @@
+Testing fallback route...
+Deleting one v1 pod...
+pod "booking-v1-5fc546f48c-v7hf9" deleted
+Sending 20 requests...
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v1
+pong from v2
+pong from v1
+pong from v1
+Fallback test passed: all 20 responses contain pong

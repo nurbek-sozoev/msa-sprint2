@@ -1,0 +1,9 @@
+NAMES                     IMAGE                             STATUS                   PORTS
+booking-service           task2-booking-service             Up 7 minutes             0.0.0.0:19090->9090/tcp, [::]:19090->9090/tcp
+booking-history-service   task2-booking-history-service     Up 7 minutes             
+task2-kafka-1             confluentinc/cp-kafka:7.2.1       Up 7 minutes             0.0.0.0:29092->9092/tcp, [::]:29092->9092/tcp
+hotelio-monolith          task2-monolith                    Up 7 minutes             0.0.0.0:18084->8080/tcp, [::]:18084->8080/tcp
+task2-zookeeper-1         confluentinc/cp-zookeeper:7.2.1   Up 7 minutes             2888/tcp, 3888/tcp, 0.0.0.0:22181->2181/tcp, [::]:22181->2181/tcp
+history-db                postgres:15                       Up 7 minutes (healthy)   0.0.0.0:15434->5432/tcp, [::]:15434->5432/tcp
+hotelio-db                postgres:15                       Up 7 minutes (healthy)   0.0.0.0:15432->5432/tcp, [::]:15432->5432/tcp
+booking-db                postgres:15                       Up 7 minutes (healthy)   0.0.0.0:15433->5432/tcp, [::]:15433->5432/tcp

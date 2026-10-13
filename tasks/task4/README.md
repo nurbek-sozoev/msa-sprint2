@@ -1,114 +1,107 @@
-# Подготовка окружения
-Перед началом убедитесь, что на машине установлены:
-Требуемое ПО:
-- Docker
-- Minikube
-- Helm
-- Node.js + npm — желательно через nvm
-- gitlab-ci-local
+# Задание 4. Автоматизация развёртывания и тестирования
 
-# Команды установки (Ubuntu/WSL)
+# Решение
 
-## Установка nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-source ~/.bashrc
-nvm install --lts
+- Отчёт с описанием изменений — [README.md](results/README.md)
+- Вывод `curl` на `/ping` — [ping.png](results/ping.png)
+- Вывод `./check-dns.sh` — [check-dns.png](results/check-dns.png)
+- Вывод `./check-status.sh` — [check-status.png](results/check-status.png)
+- `kubectl get pods` и `kubectl get services` — [kubectl.txt](results/kubectl.txt)
+- Лог сборки `gitlab-ci-local` — [build-log.txt](results/build-log.txt)
+- `docker image ls` и `minikube image list` — [images.txt](results/images.txt)
+- values для staging — [values-staging.yaml](results/values-staging.yaml)
+- values для prod — [values-prod.yaml](results/values-prod.yaml)
+- Пайплайн — [.gitlab-ci.yml](results/.gitlab-ci.yml)
 
-## Установка gitlab-ci-local
+## Подготовка окружения
+
+Требуемое ПО: Docker, Minikube, Helm, Node.js, gitlab-ci-local.
+
+```bash
+# minikube и helm (macOS)
+brew install minikube helm
+
+# gitlab-ci-local
 npm install -g gitlab-ci-local
 
-## Запуск Minikube
+# запуск кластера
 minikube start --driver=docker
+```
 
-# Структура проекта
+## Порядок запуска
 
-task4/
-├── booking-service/               # REST-сервис (Node/Java/etc)
-├── helm/
-│   └── booking-service/          # Helm-чарт сервиса
-├── .gitlab-ci.yml                # CI/CD пайплайн (требуется доработка)
-├── check-dns.sh                  # Проверка DNS внутри кластера
-├── check-status                  # Статус деплоя и curl локально
-├── README.md                     # Этот файл
+1. Собрать Docker-образ:
 
-# Что нужно реализовать
-
-1. Docker-образ сервиса
-	- Либо на базе имеющегося booking-service, либо на базе предложенного в задаче
-- Собирается с помощью docker build
-- Открывает порт 8080
-- Возвращает /ping → pong
-- Поведение сервиса меняется при наличии переменной ENABLE_FEATURE_X=true
-
-2. Helm-чарт:
-
-- Deployment с пробами:
-	- livenessProbe и readinessProbe по /ping
-- Service типа ClusterIP (порт 80 → targetPort 8080)
-- Значения из values.yaml:
-	- replicaCount
-	- image.name, image.tag, image.pullPolicy
-	- env[] — переменные окружения	
-	- resources — requests и limits
-	- ENABLE_FEATURE_X — фича-флаг
-
-Обязательно сделайте два варианта values.yaml: для staging и prod
-
-3. CI/CD пайплайн (.gitlab-ci.yml):
-
-Стадии:
-- build: docker build
-- test: docker run, проверка /ping
-- deploy: minikube image load и helm upgrade
-- tag: создать git-тег с timestamp (можно сделать вручную)
-
-! Используйте gitlab-ci-local:
-gitlab-ci-local build test deploy tag
-
-4. 🔎 Service Discovery через DNS
-
-- Проверка: http://booking-service/ping работает из другого пода внутри Minikube
-- Используйте скрипт check-dns.sh
-
-# Проверка корректности
-
-## Проверка сервисов:
-
-./check-status
-
-Пример вывода:
-
-▶️ Checking booking-service deployment...
-NAME                             READY   STATUS    RESTARTS   AGE
-booking-service-78d99d7dd5-abc   1/1     Running   0          1m
-
-▶️ Checking service...
-NAME              TYPE        CLUSTER-IP      PORT(S)   AGE
-booking-service   ClusterIP   10.96.170.171   80/TCP    1m
-
-▶️ Port-forward to test service locally:
-kubectl port-forward svc/booking-service 8080:80
-Then: curl http://localhost:8080/ping
-
-## Проверка DNS внутри кластера:
-
-./check-dns.sh
-
-Ожидаемый вывод:
-
-▶️ Running in-cluster DNS test...
-pong
-✅ Success
-
-
-# Подсказки:
-
-- imagePullPolicy: Never нужен для использования локального образа
-- minikube image load копирует образ внутрь Minikube
-- DNS имена booking-service работают только внутри кластера
-
-Для доступа снаружи используйте:
 ```bash
-kubectl port-forward svc/booking-service 8080:80
-curl http://localhost:8080/ping
+cd tasks/task4
+docker build -t booking-service:latest ./booking-service
+```
+
+2. Запустить пайплайн целиком через `gitlab-ci-local`:
+
+```bash
+gitlab-ci-local build test deploy tag
+```
+
+Пайплайн собирает образ, проверяет `/ping`, загружает образ в Minikube, устанавливает Helm-релиз `booking-service` с `values-staging.yaml` и создаёт git-тег.
+
+3. Дождаться готовности пода:
+
+```bash
+kubectl rollout status deployment/booking-service --timeout=120s
+```
+
+## Проверка корректности
+
+Проверка сервиса через port-forward:
+
+```bash
+kubectl port-forward svc/booking-service 8080:80 &
+sleep 3
+curl -s http://localhost:8080/ping
+```
+
+Ответ: `pong`.
+
+Проверка флага `ENABLE_FEATURE_X` (в staging `featureX: true`):
+
+```bash
+curl -s http://localhost:8080/feature
+```
+
+Ответ: `Feature X is enabled!`.
+
+Проверка статуса деплоя:
+
+```bash
+./check-status.sh
+```
+
+Проверка DNS внутри кластера:
+
+```bash
+./check-dns.sh
+```
+
+Ответ содержит `pong` и строку об успехе.
+
+## Формирование артефактов
+
+Артефакты собираются после проверки, при запущенном port-forward:
+
+```bash
+cd results
+
+kubectl get pods -o wide > results/kubectl.txt
+kubectl get services >> results/kubectl.txt
+
+curl -s http://localhost:8080/ping > results/ping.txt
+
+./check-status.sh > results/check-status.txt 2>&1
+./check-dns.sh > results/check-dns.txt 2>&1
+
+docker image ls booking-service > results/images.txt
+minikube image list >> results/images.txt
+
+cp .gitlab-ci.yml helm/booking-service/values-staging.yaml helm/booking-service/values-prod.yaml results/
 ```
