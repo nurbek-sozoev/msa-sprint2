@@ -1,0 +1,10 @@
+NAMES                      IMAGE                           STATUS                    PORTS
+task3-booking-subgraph-1   task3-booking-subgraph          Up 16 seconds             0.0.0.0:4001->4001/tcp, [::]:4001->4001/tcp
+task3-apollo-gateway-1     task3-apollo-gateway            Up 9 minutes              0.0.0.0:4000->4000/tcp, [::]:4000->4000/tcp
+task3-hotel-subgraph-1     task3-hotel-subgraph            Up 9 minutes              0.0.0.0:4002->4002/tcp, [::]:4002->4002/tcp
+booking-service            task2-booking-service           Up 50 minutes             0.0.0.0:19090->9090/tcp, [::]:19090->9090/tcp
+booking-history-service    task2-booking-history-service   Up 50 minutes             
+hotelio-monolith           task2-monolith                  Up 50 minutes             0.0.0.0:18084->8080/tcp, [::]:18084->8080/tcp
+history-db                 postgres:15                     Up 50 minutes (healthy)   0.0.0.0:15434->5432/tcp, [::]:15434->5432/tcp
+hotelio-db                 postgres:15                     Up 50 minutes (healthy)   0.0.0.0:15432->5432/tcp, [::]:15432->5432/tcp
+booking-db                 postgres:15                     Up 50 minutes (healthy)   0.0.0.0:15433->5432/tcp, [::]:15433->5432/tcp
