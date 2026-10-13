@@ -1,0 +1,77 @@
+parsing and downloads finished in 34 ms.
+json schema validated in 77 ms
+build  starting shell (build)
+build  $ docker build -t $IMAGE_NAME:$IMAGE_TAG ./booking-service
+build  > #0 building with "orbstack" instance using docker driver
+build  > 
+build  > #1 [internal] load build definition from Dockerfile
+build  > #1 transferring dockerfile: 843B done
+build  > #1 DONE 0.0s
+build  > 
+build  > #2 [internal] load metadata for docker.io/library/golang:1.21-alpine
+build  > #2 DONE 0.6s
+build  > 
+build  > #3 [internal] load .dockerignore
+build  > #3 transferring context: 2B done
+build  > #3 DONE 0.0s
+build  > 
+build  > #4 [1/7] FROM docker.io/library/golang:1.21-alpine@sha256:2414035b086e3c42b99654c8b26e6f5b1b1598080d65fd03c7f499552ff4dc94
+build  > #4 DONE 0.0s
+build  > 
+build  > #5 [internal] load build context
+build  > #5 transferring context: 61B done
+build  > #5 DONE 0.0s
+build  > 
+build  > #6 [2/7] RUN apk add --no-cache curl
+build  > #6 CACHED
+build  > 
+build  > #7 [5/7] COPY check-dns.sh .
+build  > #7 CACHED
+build  > 
+build  > #8 [3/7] WORKDIR /app
+build  > #8 CACHED
+build  > 
+build  > #9 [6/7] RUN chmod +x check-dns.sh
+build  > #9 CACHED
+build  > 
+build  > #10 [4/7] COPY main.go .
+build  > #10 CACHED
+build  > 
+build  > #11 [7/7] RUN go build -o booking-service main.go
+build  > #11 CACHED
+build  > 
+build  > #12 exporting to image
+build  > #12 exporting layers done
+build  > #12 writing image sha256:2882205d191a140030c5e99172acaf1e3f85ea9c0dfe65ebca3626562926d4d6 done
+build  > #12 naming to docker.io/library/booking-service:latest done
+build  > #12 DONE 0.0s
+build  finished in 1.06 s
+test   starting shell (test)
+test   $ docker rm -f ci-test 2>/dev/null || true
+test   $ docker run -d --name ci-test -p 18080:8080 $IMAGE_NAME:$IMAGE_TAG
+test   > 128caffb71aed57c31ed8988891e6e9b5d51e58b4230c1cffd11d4ce9799dfef
+test   $ sleep 2
+test   $ curl -sf http://localhost:18080/ping | grep -q pong
+test   $ docker rm -f ci-test
+test   > ci-test
+test   finished in 2.34 s
+deploy starting shell (deploy)
+deploy $ minikube image load $IMAGE_NAME:$IMAGE_TAG
+deploy > still running...
+deploy $ helm upgrade --install booking-service ./helm/booking-service -f helm/booking-service/values-staging.yaml
+deploy > Release "booking-service" does not exist. Installing it now.
+deploy > NAME: booking-service
+deploy > LAST DEPLOYED: Wed Oct 14 01:36:59 2026
+deploy > NAMESPACE: default
+deploy > STATUS: deployed
+deploy > REVISION: 1
+deploy > TEST SUITE: None
+deploy finished in 13 s
+tag    starting shell (tag)
+tag    $ git tag "deploy-$(date +%Y%m%d-%H%M%S)" || true
+tag    finished in 25 ms
+
+ PASS  build 
+ PASS  test  
+ PASS  deploy
+ PASS  tag   

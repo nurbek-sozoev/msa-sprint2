@@ -1,0 +1,34 @@
+stages:
+  - build
+  - test
+  - deploy
+  - tag
+
+variables:
+  IMAGE_TAG: latest
+  IMAGE_NAME: booking-service
+
+build:
+  stage: build
+  script:
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG ./booking-service
+
+test:
+  stage: test
+  script:
+    - docker rm -f ci-test 2>/dev/null || true
+    - docker run -d --name ci-test -p 18080:8080 $IMAGE_NAME:$IMAGE_TAG
+    - sleep 2
+    - 'curl -sf http://localhost:18080/ping | grep -q pong'
+    - docker rm -f ci-test
+
+deploy:
+  stage: deploy
+  script:
+    - minikube image load $IMAGE_NAME:$IMAGE_TAG
+    - helm upgrade --install booking-service ./helm/booking-service -f helm/booking-service/values-staging.yaml
+
+tag:
+  stage: tag
+  script:
+    - git tag "deploy-$(date +%Y%m%d-%H%M%S)" || true
